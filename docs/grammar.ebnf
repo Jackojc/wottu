@@ -1,0 +1,31 @@
+# Tokens
+word ::= ? .+ ?
+string ::= '[' ? . ?* | string ']'
+
+
+# Rules & Predicates
+wildcard ::= '\' word
+
+find ::= ( wildcard | term )+
+replace ::= ( wildcard | term )*
+
+type ::= word ':' ( 'string' | 'term' | 'quote' )
+pred ::= '?' type ( ',' word )* ','?
+
+rule ::= 'rule' find pred? '->' replace '.'
+
+
+# Terms & Strings
+term ::= string | word | '(' term* ')'
+
+
+# Misc.
+program ::= ( rule | term )*
+
+
+rule x ( \y ) -> z \y .
+
+rule bold \x ? x: string -> [<strong>] \x [</strong] .
+rule em \x -> [<em>] \x [<em>] .
+
+
