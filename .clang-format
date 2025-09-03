@@ -1,0 +1,91 @@
+---
+AccessModifierOffset: "0"
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: false
+  PadOperators: true
+AlignConsecutiveAssignments:
+  Enabled: false
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: false
+  PadOperators: true
+AlignConsecutiveDeclarations:
+  Enabled: false
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: false
+  PadOperators: true
+AlignEscapedNewlines: DontAlign
+AlignOperands: "false"
+AlignTrailingComments: "true"
+AllowAllArgumentsOnNextLine: "true"
+AllowAllParametersOfDeclarationOnNextLine: "true"
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: "true"
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: "false"
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: "true"
+BinPackArguments: "false"
+BinPackParameters: "false"
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom
+BreakBeforeTernaryOperators: "false"
+BreakStringLiterals: "true"
+ColumnLimit: "120"
+ContinuationIndentWidth: "4"
+DerivePointerAlignment: "false"
+IndentCaseLabels: "true"
+IndentPPDirectives: None
+IndentWidth: "4"
+IndentWrappedFunctionNames: "false"
+KeepEmptyLinesAtTheStartOfBlocks: "false"
+MaxEmptyLinesToKeep: "1"
+PointerAlignment: Left
+ReflowComments: "true"
+SortIncludes: "false"
+SortUsingDeclarations: "false"
+SpaceAfterCStyleCast: "false"
+SpaceAfterLogicalNot: "false"
+SpaceBeforeAssignmentOperators: "true"
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: "false"
+SpacesBeforeTrailingComments: "2"
+SpacesInCStyleCastParentheses: "false"
+SpacesInParentheses: "false"
+SpacesInSquareBrackets: "false"
+Standard: Auto
+TabWidth: "4"
+UseTab: ForContinuationAndIndentation
+AlignArrayOfStructures: None
+BitFieldColonSpacing: After
+IndentExternBlock: Indent
+InsertBraces: true
+QualifierAlignment: Left
+ReferenceAlignment: Pointer
+SeparateDefinitionBlocks: Always
+SpaceBeforeCaseColon: false
+SpaceAroundPointerQualifiers: Before
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: true
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1
+IndentRequiresClause: true
+IndentGotoLabels: true
+IndentCaseBlocks: false
+DeriveLineEnding: true
+BreakBeforeConceptDeclarations: Always
+BraceWrapping:
+  BeforeElse: true
+  BeforeCatch: true
+AllowShortEnumsOnASingleLine: false
