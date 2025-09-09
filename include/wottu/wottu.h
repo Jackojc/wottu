@@ -1,3 +1,4 @@
+
 #ifndef WOTTU_H
 #define WOTTU_H
 
@@ -15,7 +16,7 @@
 // Typedefs
 typedef int wtu_err_t;  // Used for error handling
 
-// Macros
+// Unused Macro
 #define WTU_IMPL_UNUSED0()
 #define WTU_IMPL_UNUSED1(a)             (void)(a)
 #define WTU_IMPL_UNUSED2(a, b)          (void)(a), WTU_IMPL_UNUSED1(b)
@@ -30,6 +31,7 @@ typedef int wtu_err_t;  // Used for error handling
 #define WTU_UNUSED_IMPL(nargs)  WTU_UNUSED_IMPL_(nargs)
 #define WTU_UNUSED(...)         WTU_UNUSED_IMPL(WTU_VA_NUM_ARGS(__VA_ARGS__))(__VA_ARGS__)
 
+// Macro Utils
 #define WTU_STR_IMPL_(x) #x
 #define WTU_STR(x)       WTU_STR_IMPL_(x)
 
@@ -43,199 +45,7 @@ typedef int wtu_err_t;  // Used for error handling
 #define WTU_MAX(a, b) ((a > b) ? a : b)
 #define WTU_MIN(a, b) ((a < b) ? a : b)
 
-// ANSI Colours
-#define WTU_RESET "\x1b[0m"
-#define WTU_BOLD  "\x1b[1m"
-
-#define WTU_FG_BLACK   "\x1b[30m"
-#define WTU_FG_RED     "\x1b[31m"
-#define WTU_FG_GREEN   "\x1b[32m"
-#define WTU_FG_YELLOW  "\x1b[33m"
-#define WTU_FG_BLUE    "\x1b[34m"
-#define WTU_FG_MAGENTA "\x1b[35m"
-#define WTU_FG_CYAN    "\x1b[36m"
-#define WTU_FG_WHITE   "\x1b[37m"
-
-#define WTU_FG_BLACK_BRIGHT   "\x1b[90m"
-#define WTU_FG_RED_BRIGHT     "\x1b[91m"
-#define WTU_FG_GREEN_BRIGHT   "\x1b[92m"
-#define WTU_FG_YELLOW_BRIGHT  "\x1b[93m"
-#define WTU_FG_BLUE_BRIGHT    "\x1b[94m"
-#define WTU_FG_MAGENTA_BRIGHT "\x1b[95m"
-#define WTU_FG_CYAN_BRIGHT    "\x1b[96m"
-#define WTU_FG_WHITE_BRIGHT   "\x1b[97m"
-
-#define WTU_BG_BLACK   "\x1b[40m"
-#define WTU_BG_RED     "\x1b[41m"
-#define WTU_BG_GREEN   "\x1b[42m"
-#define WTU_BG_YELLOW  "\x1b[43m"
-#define WTU_BG_BLUE    "\x1b[44m"
-#define WTU_BG_MAGENTA "\x1b[45m"
-#define WTU_BG_CYAN    "\x1b[46m"
-#define WTU_BG_WHITE   "\x1b[47m"
-
-#define WTU_BG_BLACK_BRIGHT   "\x1b[100m"
-#define WTU_BG_RED_BRIGHT     "\x1b[101m"
-#define WTU_BG_GREEN_BRIGHT   "\x1b[102m"
-#define WTU_BG_YELLOW_BRIGHT  "\x1b[103m"
-#define WTU_BG_BLUE_BRIGHT    "\x1b[104m"
-#define WTU_BG_MAGENTA_BRIGHT "\x1b[105m"
-#define WTU_BG_CYAN_BRIGHT    "\x1b[106m"
-#define WTU_BG_WHITE_BRIGHT   "\x1b[107m"
-
-#define LOGLEVELS \
-	X(WTU_INFO, "[.]", "info", WTU_FG_CYAN_BRIGHT) \
-	X(WTU_WARN, "[*]", "warn", WTU_FG_BLUE) \
-	X(WTU_FAIL, "[!]", "fail", WTU_FG_RED) \
-	X(WTU_OKAY, "[^]", "okay", WTU_FG_GREEN)
-
-#define X(x, y, z, w) x,
-
-typedef enum {
-	LOGLEVELS
-} wtu_loglevel_t;
-
-#undef X
-
-#define X(x, y, z, w) [x] = y,
-const char* WTU_LOGLEVEL_TO_STR[] = {LOGLEVELS};
-#undef X
-
-#define X(x, y, z, w) [x] = z,
-const char* WTU_LOGLEVEL_HUMAN_TO_STR[] = {LOGLEVELS};
-#undef X
-
-#define X(x, y, z, w) [x] = w,
-const char* WTU_LOGLEVEL_COLOUR[] = {LOGLEVELS};
-#undef X
-
-#undef LOGLEVELS
-
-typedef struct {
-	const char* name;  // Name of logger for filtering by pass or stage
-	FILE* dest;        // Destination to log to (usually stderr)
-	wtu_loglevel_t level;
-	size_t indent;
-} wtu_logger_t;
-
-static wtu_logger_t wtu_logger_create(const char* name) {
-	return (wtu_logger_t){
-		.name = name,
-		.dest = NULL,
-		.level = WTU_INFO,
-		.indent = 0,
-	};
-}
-
-static void wtu_log_info_v(wtu_logger_t* log,
-	wtu_loglevel_t lvl,
-	const char* filename,
-	const char* line,
-	const char* func,
-	const char* fmt,
-	va_list args) {
-	if (lvl < log->level) {
-		return;
-	}
-
-	if (log->dest == NULL) {
-		log->dest = stderr;  // Default location for logging.
-	}
-
-	const char* lvl_s = WTU_LOGLEVEL_TO_STR[lvl];
-	const char* lvl_hs = WTU_LOGLEVEL_HUMAN_TO_STR[lvl];
-	const char* lvl_col = WTU_LOGLEVEL_COLOUR[lvl];
-
-	fprintf(log->dest,
-		WTU_BOLD "%s%s" WTU_RESET
-				 " "
-				 "%s%s" WTU_RESET,
-		lvl_col,
-		lvl_s,
-		lvl_col,
-		lvl_hs);
-
-	// TODO: Check if these cases actually work.
-	if (filename != NULL && line != NULL) {
-		fprintf(log->dest, " [%s:%s]", filename, line);
-	}
-
-	else if (filename != NULL && line == NULL) {
-		fprintf(log->dest, " [%s]", filename);
-	}
-
-	else if (filename == NULL && line != NULL) {
-		fprintf(log->dest, " [%s]", line);
-	}
-
-	if (func != NULL) {
-		fprintf(log->dest, " `%s`", func);
-	}
-
-	if (fmt != NULL) {
-		fprintf(log->dest, ": ");
-		vfprintf(log->dest, fmt, args);
-	}
-
-	fputc('\n', log->dest);
-}
-
-static void wtu_log_info(wtu_logger_t* log,
-	wtu_loglevel_t lvl,
-	const char* filename,
-	const char* line,
-	const char* func,
-	const char* fmt,
-	...) {
-	va_list args;
-	va_start(args, fmt);
-
-	wtu_log_info_v(log, lvl, filename, line, func, fmt, args);
-
-	va_end(args);
-}
-
-static void wtu_log(wtu_logger_t* log, wtu_loglevel_t lvl, const char* fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-
-	wtu_log_info_v(log, lvl, NULL, NULL, NULL, fmt, args);
-
-	va_end(args);
-}
-
-#define WTU_INFO(log, ...) wtu_log_info(log, WTU_INFO, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
-#define WTU_WARN(log, ...) wtu_log_info(log, WTU_WARN, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
-#define WTU_FAIL(log, ...) wtu_log_info(log, WTU_FAIL, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
-#define WTU_OKAY(log, ...) wtu_log_info(log, WTU_OKAY, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
-
-// Find out where you are with a rainbow.
-#define WTU_WHEREAMI(log) \
-	wtu_log_info(log, \
-		WTU_INFO, \
-		__FILE__, \
-		WTU_STR(__LINE__), \
-		__func__, \
-		WTU_FG_RED "Y" WTU_FG_RED_BRIGHT "O" WTU_FG_YELLOW "U" WTU_RESET " " WTU_FG_GREEN "A" WTU_FG_BLUE \
-				   "R" WTU_FG_MAGENTA "E" WTU_RESET " " WTU_FG_MAGENTA_BRIGHT "H" WTU_FG_RED "E" WTU_FG_RED_BRIGHT \
-				   "R" WTU_FG_YELLOW "E" WTU_RESET)
-
-#define WTU_FUNCTION_ENTER(log) wtu_log_info(log, WTU_INFO, __FILE__, WTU_STR(__LINE__), __func__, NULL)
-
-// TODO: Implement "unimplemented" macro that will unconditionally abort
-// TODO: Implement "unreachable" macro
-// TODO: Implement wtu_die function that reports using WTU_ERROR and then calls
-// abort
-// TODO: Implement assert macro
-// TODO: Debug macro (might not be reasonable)
-
-// Global logger instance
-// static wtu_logger_t WTU_LOGGER = (wtu_logger_t){
-// 	.dest = NULL,
-// 	.level = WTU_DEBUG,
-// 	.indent = 0,
-// };
-
+// UTILITY FUNCTIONS
 // Return absolute difference between 2 pointers regardless of order.
 static size_t wtu_ptrdiff(const void* a, const void* b) {
 	return b > a ? b - a : a - b;
@@ -252,37 +62,6 @@ static bool wtu_strncmp(const char* ptr, const char* end, const char* str) {
 	}
 
 	return strncmp(ptr, str, length) == 0;
-}
-
-// Read bytes from stdin to a growing buffer until EOF.
-static wtu_err_t wtu_read_stdin(char** buffer, size_t* length) {
-	// TODO: Just increase allocations by fixed amount with IO.
-	char* buf = realloc(NULL, 256);
-
-	size_t capacity = 256;
-	size_t index = 0;
-
-	int c;
-	while ((c = fgetc(stdin)) != EOF) {
-		// if (index >= capacity) {
-		// 	capacity *= 2;
-		// 	*buffer = realloc(*buffer, capacity);
-
-		// 	if (!*buffer) {
-		// 		return errno;
-		// 	}
-		// }
-
-		buf[index++] = c;
-	}
-
-	if (ferror(stdin)) {
-		return errno;
-	}
-
-	*length = index;
-
-	return 0;
 }
 
 static wtu_err_t wtu_read_file(const char* path, char** buf_out, size_t* len_out) {
@@ -322,32 +101,6 @@ static wtu_err_t wtu_read_file(const char* path, char** buf_out, size_t* len_out
 	return 0;
 }
 
-// wtu_err_t wtu_basename(const char* path, char* out, size_t size) {
-// 	memset(out, 0, size);
-
-// 	size_t len = strlen(path);
-
-// 	char* last = strrchr(path, '/');
-// 	if (!last) {
-// 		if (len > size) {
-// 			return ENAMETOOLONG;
-// 		}
-
-// 		memcpy(out, path, len);
-// 		return 0;
-// 	}
-
-// 	len = strlen(last + 1);
-// 	if (len > size) {
-// 		return ENAMETOOLONG;
-// 	}
-
-// 	// memcpy(out, last + 1, len);
-// 	strncpy(out, last + 1, size - len);
-
-// 	return 0;
-// }
-
 // Get the name of the binary from argv[0].
 // Basically `basename` but without allocating or trimming trailing slashes.
 static const char* wtu_exe(const char* exe) {
@@ -362,6 +115,234 @@ static const char* wtu_exe(const char* exe) {
 
 	return exe + WTU_MIN(slash, i);
 }
+
+// ANSI Colours
+#define WTU_RESET "\x1b[0m"
+#define WTU_BOLD  "\x1b[1m"
+
+#define WTU_BLACK   "\x1b[30m"
+#define WTU_RED     "\x1b[31m"
+#define WTU_GREEN   "\x1b[32m"
+#define WTU_YELLOW  "\x1b[33m"
+#define WTU_BLUE    "\x1b[34m"
+#define WTU_MAGENTA "\x1b[35m"
+#define WTU_CYAN    "\x1b[36m"
+#define WTU_WHITE   "\x1b[37m"
+
+#define WTU_BLACK_BRIGHT   "\x1b[90m"
+#define WTU_RED_BRIGHT     "\x1b[91m"
+#define WTU_GREEN_BRIGHT   "\x1b[92m"
+#define WTU_YELLOW_BRIGHT  "\x1b[93m"
+#define WTU_BLUE_BRIGHT    "\x1b[94m"
+#define WTU_MAGENTA_BRIGHT "\x1b[95m"
+#define WTU_CYAN_BRIGHT    "\x1b[96m"
+#define WTU_WHITE_BRIGHT   "\x1b[97m"
+
+#define WTU_BG_BLACK   "\x1b[40m"
+#define WTU_BG_RED     "\x1b[41m"
+#define WTU_BG_GREEN   "\x1b[42m"
+#define WTU_BG_YELLOW  "\x1b[43m"
+#define WTU_BG_BLUE    "\x1b[44m"
+#define WTU_BG_MAGENTA "\x1b[45m"
+#define WTU_BG_CYAN    "\x1b[46m"
+#define WTU_BG_WHITE   "\x1b[47m"
+
+#define WTU_BG_BLACK_BRIGHT   "\x1b[100m"
+#define WTU_BG_RED_BRIGHT     "\x1b[101m"
+#define WTU_BG_GREEN_BRIGHT   "\x1b[102m"
+#define WTU_BG_YELLOW_BRIGHT  "\x1b[103m"
+#define WTU_BG_BLUE_BRIGHT    "\x1b[104m"
+#define WTU_BG_MAGENTA_BRIGHT "\x1b[105m"
+#define WTU_BG_CYAN_BRIGHT    "\x1b[106m"
+#define WTU_BG_WHITE_BRIGHT   "\x1b[107m"
+
+// Logging
+#define LOGLEVELS \
+	X(WTU_INFO, "[.]", "info", WTU_CYAN_BRIGHT) \
+	X(WTU_WARN, "[*]", "warn", WTU_BLUE) \
+	X(WTU_FAIL, "[!]", "fail", WTU_RED) \
+	X(WTU_OKAY, "[^]", "okay", WTU_GREEN) \
+\
+	X(WTU_DIED, "[!]", "died", WTU_RED_BRIGHT)
+
+#define X(x, y, z, w) x,
+
+typedef enum {
+	LOGLEVELS
+} wtu_loglevel_t;
+
+#undef X
+
+// Convert from/to strings & enums
+#define X(x, y, z, w) [x] = y,
+const char* WTU_LOGLEVEL_TO_STR[] = {LOGLEVELS};
+#undef X
+
+#define X(x, y, z, w) [x] = z,
+const char* WTU_LOGLEVEL_HUMAN_TO_STR[] = {LOGLEVELS};
+#undef X
+
+#define X(x, y, z, w) [x] = w,
+const char* WTU_LOGLEVEL_COLOUR[] = {LOGLEVELS};
+#undef X
+
+#undef LOGLEVELS
+
+// Logger
+typedef struct {
+	const char* name;  // Name of logger for filtering by pass or stage
+	FILE* dest;        // Destination to log to (usually stderr)
+	wtu_loglevel_t level;
+	size_t indent;
+} wtu_logger_t;
+
+static wtu_logger_t wtu_logger_create(const char* name) {
+	return (wtu_logger_t){
+		.name = name,
+		.dest = NULL,
+		.level = WTU_INFO,
+		.indent = 0,
+	};
+}
+
+static void wtu_log_info_v(wtu_logger_t log,
+	wtu_loglevel_t lvl,
+	const char* filename,
+	const char* line,
+	const char* func,
+	const char* fmt,
+	va_list args) {
+	if (lvl < log.level) {
+		return;
+	}
+
+	if (log.dest == NULL) {
+		log.dest = stderr;  // Default location for logging.
+	}
+
+	const char* lvl_s = WTU_LOGLEVEL_TO_STR[lvl];
+	const char* lvl_hs = WTU_LOGLEVEL_HUMAN_TO_STR[lvl];
+	const char* lvl_col = WTU_LOGLEVEL_COLOUR[lvl];
+
+	fprintf(log.dest,
+		WTU_BOLD "%s%s" WTU_RESET
+				 " "
+				 "%s%s" WTU_RESET,
+		lvl_col,
+		lvl_s,
+		lvl_col,
+		lvl_hs);
+
+	// TODO: Check if these cases actually work.
+	if (filename != NULL && line != NULL) {
+		fprintf(log.dest, " [%s:%s]", filename, line);
+	}
+
+	else if (filename != NULL && line == NULL) {
+		fprintf(log.dest, " [%s]", filename);
+	}
+
+	else if (filename == NULL && line != NULL) {
+		fprintf(log.dest, " [%s]", line);
+	}
+
+	if (func != NULL) {
+		fprintf(log.dest, " `%s`", func);
+	}
+
+	if (fmt != NULL) {
+		fprintf(log.dest, ": ");
+		vfprintf(log.dest, fmt, args);
+	}
+
+	fputc('\n', log.dest);
+}
+
+static void wtu_log_info(wtu_logger_t log,
+	wtu_loglevel_t lvl,
+	const char* filename,
+	const char* line,
+	const char* func,
+	const char* fmt,
+	...) {
+	va_list args;
+	va_start(args, fmt);
+
+	wtu_log_info_v(log, lvl, filename, line, func, fmt, args);
+
+	va_end(args);
+}
+
+static void wtu_log(wtu_logger_t log, wtu_loglevel_t lvl, const char* fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+
+	wtu_log_info_v(log, lvl, NULL, NULL, NULL, fmt, args);
+
+	va_end(args);
+}
+
+#define WTU_INFO(log, ...) wtu_log_info(log, WTU_INFO, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
+#define WTU_WARN(log, ...) wtu_log_info(log, WTU_WARN, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
+#define WTU_FAIL(log, ...) wtu_log_info(log, WTU_FAIL, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
+#define WTU_OKAY(log, ...) wtu_log_info(log, WTU_OKAY, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
+
+// Find out where you are with a rainbow.
+#define WTU_WHEREAMI(log) \
+	wtu_log_info(log, \
+		WTU_INFO, \
+		__FILE__, \
+		WTU_STR(__LINE__), \
+		__func__, \
+		WTU_RED "Y" WTU_RED_BRIGHT "O" WTU_YELLOW "U" WTU_RESET " " WTU_GREEN "A" WTU_BLUE "R" WTU_MAGENTA \
+				"E" WTU_RESET " " WTU_MAGENTA_BRIGHT "H" WTU_RED "E" WTU_RED_BRIGHT "R" WTU_YELLOW "E" WTU_RESET)
+
+#define WTU_FUNCTION_ENTER(log) wtu_log_info(log, WTU_INFO, __FILE__, WTU_STR(__LINE__), __func__, NULL)
+
+static void wtu_die_v(
+	wtu_logger_t log, const char* filename, const char* line, const char* func, const char* fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+
+	wtu_log_info_v(log, WTU_DIED, filename, line, func, fmt, args);
+
+	va_end(args);
+	fflush(stderr);
+
+	exit(EXIT_FAILURE);
+}
+
+#define WTU_DIE(log, ...) wtu_die_v(log, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
+
+#define WTU_UNIMPLEMENTED(log) wtu_die_v(log, __FILE__, WTU_STR(__LINE__), __func__, "unimplemented!")
+#define WTU_UNREACHABLE(log)   wtu_die_v(log, __FILE__, WTU_STR(__LINE__), __func__, "unreachable!")
+
+static void wtu_assert_v(
+	wtu_logger_t log, bool cond, const char* filename, const char* line, const char* func, const char* fmt, ...) {
+	if (!cond) {
+		va_list args;
+		va_start(args, fmt);
+
+		wtu_die_v(log, filename, line, func, fmt, args);
+
+		va_end(args);
+		fflush(stderr);
+
+		exit(EXIT_FAILURE);
+	}
+}
+
+#define WTU_ASSERT(log, cond, ...) wtu_assert_v(log, cond, __FILE__, WTU_STR(__LINE__), __func__, __VA_ARGS__)
+
+// TODO: Implement assert macro
+// TODO: Debug macro (might not be reasonable)
+
+// Global logger instance
+// static wtu_logger_t WTU_LOGGER = (wtu_logger_t){
+// 	.dest = NULL,
+// 	.level = WTU_DEBUG,
+// 	.indent = 0,
+// };
 
 // Tokens/Instructions
 #define INSTRUCTIONS \
@@ -490,9 +471,9 @@ typedef struct {
 	wtu_instr_t peek;
 } wtu_lexer_t;
 
-static bool wtu_lexer_take(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr);
+static bool wtu_lexer_take(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr);
 
-static wtu_lexer_t wtu_lexer_create(wtu_logger_t* log, const char* ptr, const char* end) {
+static wtu_lexer_t wtu_lexer_create(wtu_logger_t log, const char* ptr, const char* end) {
 	wtu_lexer_t lx = (wtu_lexer_t){
 		.src = ptr,
 		.ptr = ptr,
@@ -621,7 +602,7 @@ static bool wtu_is_ident(char c) {
 
 // Token producers
 static bool wtu_produce_if(
-	wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr, wtu_instr_kind_t kind, wtu_lexer_pred_t cond) {
+	wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr, wtu_instr_kind_t kind, wtu_lexer_pred_t cond) {
 	wtu_instr_t next_instr = wtu_instr_create(WTU_NONE, lx->ptr, lx->ptr);
 
 	if (!wtu_take_if(lx, cond)) {
@@ -639,7 +620,7 @@ static bool wtu_produce_if(
 }
 
 static bool wtu_produce_while(
-	wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr, wtu_instr_kind_t kind, wtu_lexer_pred_t cond) {
+	wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr, wtu_instr_kind_t kind, wtu_lexer_pred_t cond) {
 	wtu_instr_t next_instr = wtu_instr_create(WTU_NONE, lx->ptr, lx->ptr);
 
 	if (!wtu_take_while(lx, cond)) {
@@ -657,7 +638,7 @@ static bool wtu_produce_while(
 }
 
 static bool wtu_produce_str(
-	wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr, wtu_instr_kind_t kind, const char* str) {
+	wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr, wtu_instr_kind_t kind, const char* str) {
 	wtu_instr_t next_instr = wtu_instr_create(WTU_NONE, lx->ptr, lx->ptr);
 
 	if (!wtu_take_str(lx, str)) {
@@ -674,7 +655,7 @@ static bool wtu_produce_str(
 	return true;
 }
 
-static bool wtu_produce_ident(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_produce_ident(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 	wtu_instr_t next_instr = wtu_instr_create(WTU_NONE, lx->ptr, lx->ptr);
 
 	if (!wtu_take_if(lx, wtu_is_alpha)) {
@@ -738,7 +719,7 @@ static bool wtu_produce_ident(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* i
 	return true;
 }
 
-static bool wtu_produce_symbol(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_produce_symbol(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 	wtu_instr_t next_instr = wtu_instr_create(WTU_NONE, lx->ptr, lx->ptr);
 
 	if (!wtu_take_ifc(lx, '#')) {
@@ -757,11 +738,11 @@ static bool wtu_produce_symbol(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* 
 	return true;
 }
 
-static bool wtu_produce_number(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_produce_number(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 	return wtu_produce_while(log, lx, instr, WTU_NUMBER, wtu_is_digit);
 }
 
-static bool wtu_produce_sigil(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_produce_sigil(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 #define WTU_PRODUCE_SIGIL(s, k) wtu_produce_str(log, lx, instr, s, k)
 	// clang-format off
 
@@ -783,11 +764,11 @@ static bool wtu_produce_sigil(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* i
 #undef WTU_PRODUCE_SIGIL
 }
 
-static bool wtu_produce_whitespace(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_produce_whitespace(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 	return wtu_produce_while(log, lx, instr, WTU_WHITESPACE, wtu_is_whitespace);
 }
 
-static bool wtu_produce_comment(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_produce_comment(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 	wtu_instr_t next_instr = wtu_instr_create(WTU_NONE, lx->ptr, lx->ptr);
 
 	if (!wtu_take_str(lx, "#!")) {
@@ -810,7 +791,7 @@ static bool wtu_produce_comment(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t*
 
 // Core lexer interface
 // TODO: Reconsider implementation. Is it safe to always return true?
-static bool wtu_lexer_peek(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_lexer_peek(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 	if (instr != NULL) {
 		*instr = lx->peek;
 	}
@@ -820,7 +801,7 @@ static bool wtu_lexer_peek(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* inst
 
 // TODO: Make lexer_next produce all tokens and then wrap it in
 // another function which skips whitespace and comments.
-static bool wtu_lexer_take(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_t* instr) {
+static bool wtu_lexer_take(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_t* instr) {
 	wtu_instr_t next_instr = wtu_instr_create(WTU_NONE, lx->ptr, lx->ptr);
 
 	while (wtu_produce_whitespace(log, lx, NULL) || wtu_produce_comment(log, lx, NULL)) {}
@@ -859,19 +840,19 @@ static wtu_context_t wtu_context_create() {
 }
 
 // Primary call that sets up lexer and context automatically.
-static wtu_instr_t* wtu_parse(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
 
 // Forward declarations for mutual recursion
 // TODO: Make these functions return wtu_instr_t* linked lists.
-static wtu_instr_t* wtu_parse_program(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_expression(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_function(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_builtin(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_literal(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_type(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_fntype(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_assertion(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
-static wtu_instr_t* wtu_parse_swizzle(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_program(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_expression(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_function(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_builtin(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_literal(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_type(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_fntype(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_assertion(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
+static wtu_instr_t* wtu_parse_swizzle(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx);
 
 // Convenience functions
 typedef bool (*wtu_parser_pred_t)(wtu_instr_t);  // Used for parser predicates
@@ -904,43 +885,43 @@ static bool wtu_is_expression(wtu_instr_t instr) {
 }
 
 // Automatically handle peeking
-static bool wtu_peek_is_kind(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_kind_t kind) {
+static bool wtu_peek_is_kind(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_kind_t kind) {
 	wtu_instr_t instr;
 	wtu_lexer_peek(log, lx, &instr);
 
 	return instr.kind == kind;
 }
 
-static bool wtu_peek_is(wtu_logger_t* log, wtu_lexer_t* lx, wtu_parser_pred_t cond) {
+static bool wtu_peek_is(wtu_logger_t log, wtu_lexer_t* lx, wtu_parser_pred_t cond) {
 	wtu_instr_t instr;
 	wtu_lexer_peek(log, lx, &instr);
 
 	return cond(instr);
 }
 
-static bool wtu_peek_is_expression(wtu_logger_t* log, wtu_lexer_t* lx) {
+static bool wtu_peek_is_expression(wtu_logger_t log, wtu_lexer_t* lx) {
 	return wtu_peek_is(log, lx, wtu_is_expression);
 }
 
-static bool wtu_peek_is_builtin(wtu_logger_t* log, wtu_lexer_t* lx) {
+static bool wtu_peek_is_builtin(wtu_logger_t log, wtu_lexer_t* lx) {
 	return wtu_peek_is(log, lx, wtu_is_builtin);
 }
 
-static bool wtu_peek_is_literal(wtu_logger_t* log, wtu_lexer_t* lx) {
+static bool wtu_peek_is_literal(wtu_logger_t log, wtu_lexer_t* lx) {
 	return wtu_peek_is(log, lx, wtu_is_literal);
 }
 
-static bool wtu_peek_is_primitive(wtu_logger_t* log, wtu_lexer_t* lx) {
+static bool wtu_peek_is_primitive(wtu_logger_t log, wtu_lexer_t* lx) {
 	return wtu_peek_is(log, lx, wtu_is_primitive);
 }
 
-static bool wtu_peek_is_type(wtu_logger_t* log, wtu_lexer_t* lx) {
+static bool wtu_peek_is_type(wtu_logger_t log, wtu_lexer_t* lx) {
 	return wtu_peek_is_primitive(log, lx) || wtu_peek_is_kind(log, lx, WTU_TYPE_FN);
 }
 
 // Parsing utilities
 // TODO: `wtu_expect_kind` should call `wtu_expect_kind` to avoid redundant code.
-static void wtu_expect_kind(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_kind_t kind, const char* fmt, ...) {
+static void wtu_expect_kind(wtu_logger_t log, wtu_lexer_t* lx, wtu_instr_kind_t kind, const char* fmt, ...) {
 	// TODO: Report line info from deck lexer. (use wtu_log_info function).
 
 	if (wtu_peek_is_kind(log, lx, kind)) {
@@ -971,7 +952,7 @@ static void wtu_expect_kind(wtu_logger_t* log, wtu_lexer_t* lx, wtu_instr_kind_t
 	exit(EXIT_FAILURE);
 }
 
-static void wtu_expect(wtu_logger_t* log, wtu_lexer_t* lx, wtu_parser_pred_t cond, const char* fmt, ...) {
+static void wtu_expect(wtu_logger_t log, wtu_lexer_t* lx, wtu_parser_pred_t cond, const char* fmt, ...) {
 	// TODO: Report line info from deck lexer. (use wtu_log_info function).
 
 	if (wtu_peek_is(log, lx, cond)) {
@@ -989,7 +970,7 @@ static void wtu_expect(wtu_logger_t* log, wtu_lexer_t* lx, wtu_parser_pred_t con
 }
 
 // Implementation of core parsing functions
-static wtu_instr_t* wtu_parse(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_instr_t* program = wtu_parse_program(log, ctx, lx);
@@ -998,7 +979,7 @@ static wtu_instr_t* wtu_parse(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t
 }
 
 // Core parsing functions
-static wtu_instr_t* wtu_parse_program(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_program(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_instr_t* program = NULL;  // TODO: Use allocator API to construct linked list.
@@ -1018,7 +999,7 @@ static wtu_instr_t* wtu_parse_program(wtu_logger_t* log, wtu_context_t* ctx, wtu
 	return program;
 }
 
-static wtu_instr_t* wtu_parse_expression(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_expression(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_expect(log, lx, wtu_is_expression, "expected an expression");
@@ -1074,7 +1055,7 @@ static wtu_instr_t* wtu_parse_expression(wtu_logger_t* log, wtu_context_t* ctx, 
 	return expression;
 }
 
-static wtu_instr_t* wtu_parse_function(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_function(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_expect_kind(log, lx, WTU_LBRACKET, "expected '['");
@@ -1095,7 +1076,7 @@ static wtu_instr_t* wtu_parse_function(wtu_logger_t* log, wtu_context_t* ctx, wt
 	return function;
 }
 
-static wtu_instr_t* wtu_parse_builtin(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_builtin(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_expect(log, lx, wtu_is_builtin, "expected a built-in");
@@ -1107,7 +1088,7 @@ static wtu_instr_t* wtu_parse_builtin(wtu_logger_t* log, wtu_context_t* ctx, wtu
 	return NULL;
 }
 
-static wtu_instr_t* wtu_parse_literal(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_literal(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_expect(log, lx, wtu_is_literal, "expected a literal");
@@ -1119,7 +1100,7 @@ static wtu_instr_t* wtu_parse_literal(wtu_logger_t* log, wtu_context_t* ctx, wtu
 	return NULL;
 }
 
-static wtu_instr_t* wtu_parse_type(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_type(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_instr_t instr;
@@ -1147,7 +1128,7 @@ static wtu_instr_t* wtu_parse_type(wtu_logger_t* log, wtu_context_t* ctx, wtu_le
 	return NULL;
 }
 
-static wtu_instr_t* wtu_parse_fntype(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_fntype(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_expect_kind(log, lx, WTU_TYPE_FN, "expected 'fn'");
@@ -1176,7 +1157,7 @@ static wtu_instr_t* wtu_parse_fntype(wtu_logger_t* log, wtu_context_t* ctx, wtu_
 	return NULL;
 }
 
-static wtu_instr_t* wtu_parse_assertion(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_assertion(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_expect_kind(log, lx, WTU_TYPE, "expected '$'");
@@ -1198,7 +1179,7 @@ static wtu_instr_t* wtu_parse_assertion(wtu_logger_t* log, wtu_context_t* ctx, w
 				  // the caller level in this case.
 }
 
-static wtu_instr_t* wtu_parse_swizzle(wtu_logger_t* log, wtu_context_t* ctx, wtu_lexer_t* lx) {
+static wtu_instr_t* wtu_parse_swizzle(wtu_logger_t log, wtu_context_t* ctx, wtu_lexer_t* lx) {
 	WTU_FUNCTION_ENTER(log);
 
 	wtu_expect_kind(log, lx, WTU_LPAREN, "expected '('");
